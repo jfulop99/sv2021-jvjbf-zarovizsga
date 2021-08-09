@@ -8,7 +8,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.jdbc.Sql;
 import org.training360.finalexam.teams.CreateTeamCommand;
-import org.training360.finalexam.teams.TeamDTO;
+import org.training360.finalexam.teams.TeamDto;
 import org.training360.finalexam.teams.UpdateWithExistingPlayerCommand;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
@@ -30,10 +30,10 @@ public class TeamControllerRestIT {
 
     @Test
     void testCreateNewTeam(){
-        TeamDTO result =
+        TeamDto result =
                 template.postForObject("/api/teams",
                         new CreateTeamCommand("Arsenal"),
-                        TeamDTO.class);
+                        TeamDto.class);
 
         assertEquals("Arsenal",result.getName());
 
@@ -44,103 +44,103 @@ public class TeamControllerRestIT {
     void testGetTeams(){
         template.postForObject("/api/teams",
                 new CreateTeamCommand("Arsenal"),
-                TeamDTO.class);
+                TeamDto.class);
 
         template.postForObject("/api/teams",
                 new CreateTeamCommand("Chelsea"),
-                TeamDTO.class);
+                TeamDto.class);
 
-        List<TeamDTO> result = template.exchange(
+        List<TeamDto> result = template.exchange(
                 "/api/teams",
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<TeamDTO>>() {
+                new ParameterizedTypeReference<List<TeamDto>>() {
                 }
         ).getBody();
 
-        assertThat(result).extracting(TeamDTO::getName)
+        assertThat(result).extracting(TeamDto::getName)
                 .containsExactly("Arsenal","Chelsea");
     }
 
 
     @Test
     void testAddNewPlayerToExistingTeam(){
-        TeamDTO team =
+        TeamDto team =
                 template.postForObject("/api/teams",
                         new CreateTeamCommand("Arsenal"),
-                        TeamDTO.class);
+                        TeamDto.class);
 
-        TeamDTO resultWithPlayer = template.postForObject("/api/teams/{id}/players",
+        TeamDto resultWithPlayer = template.postForObject("/api/teams/{id}/players",
                 new CreatePlayerCommand("John Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                TeamDTO.class,
+                TeamDto.class,
                 team.getId());
 
-        assertThat(resultWithPlayer.getPlayers()).extracting(PlayerDTO::getName)
+        assertThat(resultWithPlayer.getPlayers()).extracting(PlayerDto::getName)
                 .containsExactly("John Doe");
 
     }
 
     @Test
     void testAddExistingPlayerToExistingTeam(){
-        TeamDTO team =
+        TeamDto team =
                 template.postForObject("/api/teams",
                         new CreateTeamCommand("Arsenal"),
-                        TeamDTO.class);
+                        TeamDto.class);
 
-        PlayerDTO player =
+        PlayerDto player =
                 template.postForObject("/api/players",
                         new CreatePlayerCommand("John Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                        PlayerDTO.class);
+                        PlayerDto.class);
 
         template.put("/api/teams/{id}/players", new UpdateWithExistingPlayerCommand(player.getId()), team.getId());
 
 
-        List<TeamDTO> result = template.exchange(
+        List<TeamDto> result = template.exchange(
                 "/api/teams",
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<TeamDTO>>() {
+                new ParameterizedTypeReference<List<TeamDto>>() {
                 }
         ).getBody();
 
-        assertThat(result.get(0).getPlayers()).extracting(PlayerDTO::getName)
+        assertThat(result.get(0).getPlayers()).extracting(PlayerDto::getName)
                 .containsExactly("John Doe");
     }
 
 
     @Test
     void testAddExistingPlayerWithTeam(){
-        TeamDTO team1 =
+        TeamDto team1 =
                 template.postForObject("/api/teams",
                         new CreateTeamCommand("Arsenal"),
-                        TeamDTO.class);
+                        TeamDto.class);
 
-        TeamDTO team2 =
+        TeamDto team2 =
                 template.postForObject("/api/teams",
                         new CreateTeamCommand("Chelsea"),
-                        TeamDTO.class);
+                        TeamDto.class);
 
-        PlayerDTO player =
+        PlayerDto player =
                 template.postForObject("/api/players",
                         new CreatePlayerCommand("John Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                        PlayerDTO.class);
+                        PlayerDto.class);
 
         template.put("/api/teams/{id}/players", new UpdateWithExistingPlayerCommand(player.getId()), team1.getId());
 
         template.put("/api/teams/{id}/players", new UpdateWithExistingPlayerCommand(player.getId()), team2.getId());
 
-        List<TeamDTO> result = template.exchange(
+        List<TeamDto> result = template.exchange(
                 "/api/teams",
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<TeamDTO>>() {
+                new ParameterizedTypeReference<List<TeamDto>>() {
                 }
         ).getBody();
 
-        TeamDTO resultTeam1 = result.stream().filter(t->t.getName().equals("Arsenal")).findFirst().orElseThrow();
-        TeamDTO resultTeam2 = result.stream().filter(t->t.getName().equals("Chelsea")).findFirst().orElseThrow();
+        TeamDto resultTeam1 = result.stream().filter(t->t.getName().equals("Arsenal")).findFirst().orElseThrow();
+        TeamDto resultTeam2 = result.stream().filter(t->t.getName().equals("Chelsea")).findFirst().orElseThrow();
 
-        assertThat(resultTeam1.getPlayers()).extracting(PlayerDTO::getName)
+        assertThat(resultTeam1.getPlayers()).extracting(PlayerDto::getName)
                 .containsExactly("John Doe");
 
         assertThat(resultTeam2.getPlayers()).isEmpty();
@@ -149,39 +149,39 @@ public class TeamControllerRestIT {
 
     @Test
     void testAddPlayerWithPosition(){
-        TeamDTO team1 =
+        TeamDto team1 =
                 template.postForObject("/api/teams",
                         new CreateTeamCommand("Arsenal"),
-                        TeamDTO.class);
+                        TeamDto.class);
 
-        PlayerDTO player =
+        PlayerDto player =
                 template.postForObject("/api/players",
                         new CreatePlayerCommand("John Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                        PlayerDTO.class);
+                        PlayerDto.class);
 
-        PlayerDTO player2 =
+        PlayerDto player2 =
                 template.postForObject("/api/players",
                         new CreatePlayerCommand("Jack Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                        PlayerDTO.class);
+                        PlayerDto.class);
 
-        PlayerDTO player3 =
+        PlayerDto player3 =
                 template.postForObject("/api/players",
                         new CreatePlayerCommand("Jill Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                        PlayerDTO.class);
+                        PlayerDto.class);
 
         template.put("/api/teams/{id}/players", new UpdateWithExistingPlayerCommand(player.getId()), team1.getId());
         template.put("/api/teams/{id}/players", new UpdateWithExistingPlayerCommand(player2.getId()), team1.getId());
         template.put("/api/teams/{id}/players", new UpdateWithExistingPlayerCommand(player3.getId()), team1.getId());
 
-        List<TeamDTO> result = template.exchange(
+        List<TeamDto> result = template.exchange(
                 "/api/teams",
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<TeamDTO>>() {
+                new ParameterizedTypeReference<List<TeamDto>>() {
                 }
         ).getBody();
 
-        assertThat(result.get(0).getPlayers()).extracting(PlayerDTO::getName)
+        assertThat(result.get(0).getPlayers()).extracting(PlayerDto::getName)
                 .containsOnly("John Doe","Jack Doe");
 
     }

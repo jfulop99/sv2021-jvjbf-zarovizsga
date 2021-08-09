@@ -8,7 +8,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.jdbc.Sql;
-import org.training360.finalexam.teams.CreateTeamCommand;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
@@ -28,10 +27,10 @@ public class PlayerControllerRestIT {
 
     @Test
     void testAddNewPlayers(){
-        PlayerDTO result =
+        PlayerDto result =
                 template.postForObject("/api/players",
                         new CreatePlayerCommand("John Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                                PlayerDTO.class);
+                                PlayerDto.class);
 
 
         assertEquals("John Doe",result.getName());
@@ -43,39 +42,39 @@ public class PlayerControllerRestIT {
     void testGetPlayers(){
         template.postForObject("/api/players",
                 new CreatePlayerCommand("John Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                PlayerDTO.class);
+                PlayerDto.class);
 
         template.postForObject("/api/players",
                 new CreatePlayerCommand("Jack Doe", LocalDate.of(1992,11,10),PositionType.RIGHT_WINGER),
-                PlayerDTO.class);
+                PlayerDto.class);
 
-        List<PlayerDTO> result = template.exchange(
+        List<PlayerDto> result = template.exchange(
                 "/api/players",
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<PlayerDTO>>() {
+                new ParameterizedTypeReference<List<PlayerDto>>() {
                 }
         ).getBody();
 
 
-        assertThat(result).extracting(PlayerDTO::getName)
+        assertThat(result).extracting(PlayerDto::getName)
                 .containsExactly("John Doe","Jack Doe");
     }
 
     @Test
     void deletePlayerById(){
-        PlayerDTO result =template.postForObject("/api/players",
+        PlayerDto result =template.postForObject("/api/players",
                 new CreatePlayerCommand("John Doe", LocalDate.of(1991,11,10),PositionType.CENTER_BACK),
-                PlayerDTO.class);
+                PlayerDto.class);
 
 
         template.delete("/api/players/{id}", result.getId());
 
-        List<PlayerDTO> players = template.exchange(
+        List<PlayerDto> players = template.exchange(
                 "/api/players",
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<PlayerDTO>>() {
+                new ParameterizedTypeReference<List<PlayerDto>>() {
                 }
         ).getBody();
 
@@ -88,7 +87,7 @@ public class PlayerControllerRestIT {
     void testCreatePlayerWithInvalidName(){
         Problem result =
                 template.postForObject("/api/players",
-                        new CreateTeamCommand(""),
+                        new CreatePlayerCommand(""),
                         Problem.class);
 
         assertEquals(Status.BAD_REQUEST,result.getStatus());
