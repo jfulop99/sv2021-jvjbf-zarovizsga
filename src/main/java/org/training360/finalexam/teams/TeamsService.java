@@ -32,14 +32,14 @@ public class TeamsService {
     }
 
     public TeamDto addNewPlayer(Long id, CreatePlayerCommand command) {
-        Team team = teamsRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Cannot find team"));
+        Team team = teamsRepository.findById(id).orElseThrow(() -> new TeamNotFoundException("Cannot find team"));
         Player player = new Player(command.getName(), command.getBirthDate(), command.getPosition());
         team.addPlayer(player);
         return modelMapper.map(team, TeamDto.class);
     }
 
     public TeamDto addExistingPlayerToTeam(UpdateWithExistingPlayerCommand command, Long id) {
-        Team team = teamsRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Cannot find team"));
+        Team team = teamsRepository.findById(id).orElseThrow(() -> new TeamNotFoundException("Cannot find team"));
         Player player = playersRepository.findById(command.getPlayerId()).orElseThrow(() -> new IllegalArgumentException("Cannot find player"));
         List<Player> players = team.getPlayers();
         long count = players.stream().filter(player1 -> player1.getPosition() == player.getPosition()).count();
